@@ -18,7 +18,7 @@ body{
 
 h1{
     margin-top:10px;
-    color:#FFD700;
+    color:gold;
 }
 
 canvas{
@@ -62,30 +62,6 @@ canvas{
 
 <button id="restartBtn">🔄 Ricomincia</button>
 
-<!-- MUSICA CLASSICA DI SOTTOFONDO -->
-<audio id="bgMusic" loop>
-    <!-- INSERISCI QUI IL FILE -->
-    <source src="mozart.mp3" type="audio/mpeg">
-</audio>
-
-<!-- SUONO COLPO -->
-<audio id="hitSound">
-    <!-- INSERISCI QUI IL FILE -->
-    <source src="classical-hit.mp3" type="audio/mpeg">
-</audio>
-
-<!-- SUONO VITTORIA -->
-<audio id="winSound">
-    <!-- INSERISCI QUI IL FILE -->
-    <source src="acdc-rock.mp3" type="audio/mpeg">
-</audio>
-
-<!-- SUONO SCONFITTA -->
-<audio id="loseSound">
-    <!-- INSERISCI QUI IL FILE -->
-    <source src="peppapig.mp3" type="audio/mpeg">
-</audio>
-
 <script>
 
 const canvas = document.getElementById("gameCanvas");
@@ -94,11 +70,23 @@ const ctx = canvas.getContext("2d");
 const scoreEl = document.getElementById("score");
 const restartBtn = document.getElementById("restartBtn");
 
-// AUDIO
-const bgMusic = document.getElementById("bgMusic");
-const hitSound = document.getElementById("hitSound");
-const winSound = document.getElementById("winSound");
-const loseSound = document.getElementById("loseSound");
+// ==========================
+// AUDIO DALLA CARTELLA ASSETS
+// ==========================
+
+const bgMusic = new Audio("assets/sottofondo.mp3");
+
+const hitSound = new Audio("assets/colpo.zip");
+
+const loseSound = new Audio("assets/perdita.mp3");
+
+const winSound = new Audio("assets/vincita.mp3");
+
+bgMusic.loop = true;
+
+// ==========================
+// VARIABILI GIOCO
+// ==========================
 
 let player;
 let bullets;
@@ -110,7 +98,10 @@ let gameWon;
 
 let keys = {};
 
+// ==========================
 // AVVIO GIOCO
+// ==========================
+
 function initGame(){
 
     player = {
@@ -123,9 +114,11 @@ function initGame(){
 
     bullets = [];
     enemies = [];
+
     enemyDirection = 1;
 
     score = 0;
+
     gameOver = false;
     gameWon = false;
 
@@ -134,9 +127,9 @@ function initGame(){
     restartBtn.style.display = "none";
 
     // CREA NEMICI MUSICALI
-    for(let row=0; row<4; row++){
+    for(let row = 0; row < 4; row++){
 
-        for(let col=0; col<8; col++){
+        for(let col = 0; col < 8; col++){
 
             const symbols = ["𝄞","𝄢","🎼"];
 
@@ -152,19 +145,22 @@ function initGame(){
         }
     }
 
-    // MUSICA DI SOTTOFONDO
+    // AVVIO MUSICA
     bgMusic.currentTime = 0;
     bgMusic.play();
 
     gameLoop();
 }
 
+// ==========================
 // CONTROLLI
+// ==========================
+
 document.addEventListener("keydown",(e)=>{
 
     keys[e.key] = true;
 
-    // SPARO NOTE MUSICALI
+    // SPARO
     if(e.key === " " && !gameOver){
 
         bullets.push({
@@ -182,58 +178,103 @@ document.addEventListener("keyup",(e)=>{
     keys[e.key] = false;
 });
 
+// ==========================
 // MOVIMENTO
+// ==========================
+
 function movePlayer(){
 
     if(keys["ArrowLeft"] && player.x > 0){
         player.x -= player.speed;
     }
 
-    if(keys["ArrowRight"] &&
-       player.x + player.width < canvas.width){
-
+    if(
+        keys["ArrowRight"] &&
+        player.x + player.width < canvas.width
+    ){
         player.x += player.speed;
     }
 }
 
+// ==========================
 // DISEGNA MOZART
+// ==========================
+
 function drawPlayer(){
 
     // CAPELLI
     ctx.fillStyle = "white";
+
     ctx.beginPath();
-    ctx.arc(player.x + 35, player.y + 25, 28, 0, Math.PI*2);
+
+    ctx.arc(
+        player.x + 35,
+        player.y + 25,
+        28,
+        0,
+        Math.PI * 2
+    );
+
     ctx.fill();
 
     // VISO
     ctx.fillStyle = "#FFD39B";
+
     ctx.beginPath();
-    ctx.arc(player.x + 35, player.y + 25, 20, 0, Math.PI*2);
+
+    ctx.arc(
+        player.x + 35,
+        player.y + 25,
+        20,
+        0,
+        Math.PI * 2
+    );
+
     ctx.fill();
 
     // OCCHI
     ctx.fillStyle = "black";
+
     ctx.beginPath();
+
     ctx.arc(player.x + 28, player.y + 22, 2, 0, Math.PI*2);
+
     ctx.arc(player.x + 42, player.y + 22, 2, 0, Math.PI*2);
+
     ctx.fill();
 
     // BOCCA
     ctx.beginPath();
-    ctx.arc(player.x + 35, player.y + 30, 5, 0, Math.PI);
-    ctx.strokeStyle = "black";
+
+    ctx.arc(
+        player.x + 35,
+        player.y + 30,
+        5,
+        0,
+        Math.PI
+    );
+
     ctx.stroke();
 
     // CORPO
     ctx.fillStyle = "red";
-    ctx.fillRect(player.x + 18, player.y + 45, 35, 30);
 
+    ctx.fillRect(
+        player.x + 18,
+        player.y + 45,
+        35,
+        30
+    );
 }
 
-// DISEGNA COLPI
+// ==========================
+// DISEGNA PROIETTILI
+// ==========================
+
 function drawBullets(){
 
     ctx.fillStyle = "yellow";
+
     ctx.font = "30px Arial";
 
     bullets.forEach((bullet,index)=>{
@@ -247,13 +288,18 @@ function drawBullets(){
         );
 
         if(bullet.y < 0){
+
             bullets.splice(index,1);
+
         }
 
     });
 }
 
+// ==========================
 // DISEGNA NEMICI
+// ==========================
+
 function drawEnemies(){
 
     let moveDown = false;
@@ -266,9 +312,10 @@ function drawEnemies(){
 
         enemy.x += enemyDirection;
 
-        if(enemy.x + enemy.width > canvas.width ||
-           enemy.x < 0){
-
+        if(
+            enemy.x + enemy.width > canvas.width ||
+            enemy.x < 0
+        ){
             moveDown = true;
         }
 
@@ -287,13 +334,17 @@ function drawEnemies(){
         enemyDirection *= -1;
 
         enemies.forEach(enemy=>{
-            enemy.y += 20;
-        });
 
+            enemy.y += 20;
+
+        });
     }
 }
 
+// ==========================
 // COLLISIONI
+// ==========================
+
 function checkCollisions(){
 
     bullets.forEach((bullet,bulletIndex)=>{
@@ -316,7 +367,7 @@ function checkCollisions(){
 
                 scoreEl.textContent = score;
 
-                // SUONO COLPO CLASSICO
+                // SUONO COLPO
                 hitSound.currentTime = 0;
                 hitSound.play();
 
@@ -328,48 +379,66 @@ function checkCollisions(){
 
 }
 
+// ==========================
 // CONTROLLO VITTORIA
+// ==========================
+
 function checkWin(){
 
-    const aliveEnemies = enemies.filter(e => e.alive);
+    const aliveEnemies =
+        enemies.filter(enemy => enemy.alive);
 
     if(aliveEnemies.length === 0){
 
         gameWon = true;
+
         gameOver = true;
 
         bgMusic.pause();
 
-        // SUONO ROCK ACDC
+        winSound.currentTime = 0;
+
         winSound.play();
+
     }
 
 }
 
-// GAME OVER
+// ==========================
+// CONTROLLO SCONFITTA
+// ==========================
+
 function checkGameOver(){
 
     enemies.forEach(enemy=>{
 
-        if(enemy.alive &&
-           enemy.y + enemy.height >= player.y){
+        if(
+            enemy.alive &&
+            enemy.y + enemy.height >= player.y
+        ){
 
             gameOver = true;
 
             bgMusic.pause();
 
-            // SUONO PEPPA PIG
+            loseSound.currentTime = 0;
+
             loseSound.play();
+
         }
 
     });
 
 }
 
+// ==========================
 // SCHERMATA FINALE
+// ==========================
+
 function drawEndScreen(){
 
     ctx.fillStyle = "white";
+
     ctx.font = "60px Arial";
 
     if(gameWon){
@@ -383,7 +452,7 @@ function drawEndScreen(){
     } else {
 
         ctx.fillText(
-            "🐷 GAME OVER 🐷",
+            "💀 GAME OVER 💀",
             220,
             250
         );
@@ -400,14 +469,23 @@ function drawEndScreen(){
     restartBtn.style.display = "inline-block";
 }
 
+// ==========================
 // LOOP PRINCIPALE
+// ==========================
+
 function gameLoop(){
 
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
 
     if(gameOver){
 
         drawEndScreen();
+
         return;
     }
 
@@ -428,10 +506,13 @@ function gameLoop(){
     requestAnimationFrame(gameLoop);
 }
 
+// ==========================
 // RICOMINCIA
+// ==========================
+
 restartBtn.addEventListener("click",()=>{
 
-    // FERMA AUDIO
+    // RESET AUDIO
     winSound.pause();
     loseSound.pause();
 
@@ -442,7 +523,10 @@ restartBtn.addEventListener("click",()=>{
 
 });
 
-// AVVIO
+// ==========================
+// START
+// ==========================
+
 initGame();
 
 </script>
