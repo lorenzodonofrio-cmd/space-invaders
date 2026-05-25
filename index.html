@@ -1,0 +1,226 @@
+```html
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Space Invaders</title>
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      color: white;
+      text-align: center;
+    }
+
+    h1 {
+      margin-top: 10px;
+    }
+
+    canvas {
+      background: #111;
+      border: 2px solid lime;
+      display: block;
+      margin: 10px auto;
+    }
+
+    #info {
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🚀 Space Invaders</h1>
+<div id="info">
+  Punteggio: <span id="score">0</span>
+</div>
+
+<canvas id="gameCanvas" width="800" height="600"></canvas>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+const scoreEl = document.getElementById("score");
+
+let score = 0;
+let gameOver = false;
+
+// Giocatore
+const player = {
+  x: canvas.width / 2 - 25,
+  y: canvas.height - 60,
+  width: 50,
+  height: 20,
+  speed: 7,
+  color: "lime"
+};
+
+// Proiettili
+let bullets = [];
+
+// Nemici
+let enemies = [];
+const enemyRows = 4;
+const enemyCols = 8;
+const enemyWidth = 50;
+const enemyHeight = 30;
+let enemyDirection = 1;
+
+for (let row = 0; row < enemyRows; row++) {
+  for (let col = 0; col < enemyCols; col++) {
+    enemies.push({
+      x: 80 + col * 80,
+      y: 50 + row * 60,
+      width: enemyWidth,
+      height: enemyHeight,
+      alive: true
+    });
+  }
+}
+
+// Controlli
+const keys = {};
+
+document.addEventListener("keydown", (e) => {
+  keys[e.key] = true;
+
+  if (e.key === " ") {
+    bullets.push({
+      x: player.x + player.width / 2 - 2,
+      y: player.y,
+      width: 4,
+      height: 10,
+      speed: 8
+    });
+  }
+});
+
+document.addEventListener("keyup", (e) => {
+  keys[e.key] = false;
+});
+
+// Disegna giocatore
+function drawPlayer() {
+  ctx.fillStyle = player.color;
+  ctx.fillRect(player.x, player.y, player.width, player.height);
+}
+
+// Disegna proiettili
+function drawBullets() {
+  ctx.fillStyle = "yellow";
+
+  bullets.forEach((bullet, index) => {
+    bullet.y -= bullet.speed;
+
+    ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+
+    // Rimuovi fuori schermo
+    if (bullet.y < 0) {
+      bullets.splice(index, 1);
+    }
+  });
+}
+
+// Disegna nemici
+function drawEnemies() {
+  let moveDown = false;
+
+  enemies.forEach(enemy => {
+    if (!enemy.alive) return;
+
+    enemy.x += enemyDirection;
+
+    if (enemy.x + enemy.width > canvas.width || enemy.x < 0) {
+      moveDown = true;
+    }
+
+    ctx.fillStyle = "red";
+    ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+  });
+
+  if (moveDown) {
+    enemyDirection *= -1;
+
+    enemies.forEach(enemy => {
+      enemy.y += 20;
+    });
+  }
+}
+
+// Collisioni
+function checkCollisions() {
+  bullets.forEach((bullet, bIndex) => {
+    enemies.forEach(enemy => {
+      if (
+        enemy.alive &&
+        bullet.x < enemy.x + enemy.width &&
+        bullet.x + bullet.width > enemy.x &&
+        bullet.y < enemy.y + enemy.height &&
+        bullet.y + bullet.height > enemy.y
+      ) {
+        enemy.alive = false;
+        bullets.splice(bIndex, 1);
+
+        score += 10;
+        scoreEl.textContent = score;
+      }
+    });
+  });
+}
+
+// Movimento giocatore
+function movePlayer() {
+  if (keys["ArrowLeft"] && player.x > 0) {
+    player.x -= player.speed;
+  }
+
+  if (keys["ArrowRight"] && player.x + player.width < canvas.width) {
+    player.x += player.speed;
+  }
+}
+
+// Controllo game over
+function checkGameOver() {
+  enemies.forEach(enemy => {
+    if (enemy.alive && enemy.y + enemy.height >= player.y) {
+      gameOver = true;
+    }
+  });
+}
+
+// Schermata game over
+function drawGameOver() {
+  ctx.fillStyle = "white";
+  ctx.font = "50px Arial";
+  ctx.fillText("GAME OVER", 250, 300);
+}
+
+// Loop principale
+function gameLoop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (gameOver) {
+    drawGameOver();
+    return;
+  }
+
+  movePlayer();
+  drawPlayer();
+  drawBullets();
+  drawEnemies();
+  checkCollisions();
+  checkGameOver();
+
+  requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
+</script>
+
+</body>
+</html>
+```
